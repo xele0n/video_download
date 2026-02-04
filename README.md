@@ -41,7 +41,7 @@ On Windows you can install FFmpeg, for example, via:
 3. Run the development server:
 
    ```bash
-   uvicorn main:app --reload
+   python main.py launch
    ```
 
 4. Open your browser and go to:
@@ -49,6 +49,32 @@ On Windows you can install FFmpeg, for example, via:
    ```text
    http://127.0.0.1:8000
    ```
+
+### Command-line usage
+
+You can also use this project directly from the command line without the web UI.
+
+- **Start the web server** (same as above):
+
+  ```bash
+  python main.py launch --host 0.0.0.0 --port 8000
+  ```
+
+- **Download a video or audio file with a CLI progress bar**:
+
+  ```bash
+  # HD video (MP4, default)
+  python main.py download "https://example.com/video-url"
+
+  # Smaller video (≤ 480p)
+  python main.py download "https://example.com/video-url" --format video_low
+
+  # Audio-only (MP3)
+  python main.py download "https://example.com/video-url" --format audio
+  ```
+
+The CLI and the web UI share the same downloading logic (based on `yt-dlp`), with
+extra tuning to better support HLS-style streams such as Veo/Vimeo recordings.
 
 ### How it works
 

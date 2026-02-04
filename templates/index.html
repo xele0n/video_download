@@ -4,177 +4,120 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video Downloader</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-      integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-slate-50"
-  >
-    <div class="absolute inset-0 -z-10 overflow-hidden">
-      <div
-        class="pointer-events-none absolute -left-40 top-10 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl"
-      ></div>
-      <div
-        class="pointer-events-none absolute -right-40 bottom-10 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl"
-      ></div>
-    </div>
-
+  <body class="min-h-screen bg-slate-900 text-slate-50">
     <main
-      class="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-4 py-10"
+      class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-4 py-8"
     >
       <section
-        class="w-full rounded-3xl border border-slate-800/80 bg-slate-950/70 p-8 shadow-2xl shadow-black/40 backdrop-blur-xl"
+        class="w-full rounded-xl border border-slate-800 bg-slate-950 px-6 py-6 shadow-lg"
       >
-        <div class="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-slate-50">
-              Video Downloader
-            </h1>
-            <p class="mt-1 text-sm text-slate-400">
-              Paste a video link from YouTube, Vimeo and many other platforms,
-              then choose the format you want to download.
-            </p>
-          </div>
-          <div
-            class="hidden h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-500 to-sky-500 text-2xl text-white shadow-lg shadow-purple-500/40 sm:flex"
-          >
-            <i class="fa-solid fa-download"></i>
-          </div>
-        </div>
+        <header class="mb-4">
+          <h1 class="text-xl font-semibold text-slate-50">Video Downloader</h1>
+          <p class="mt-1 text-sm text-slate-400">
+            Paste a video link and choose the format you want to download.
+          </p>
+        </header>
 
         <div
-          class="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-100"
+          class="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
         >
           <p class="font-medium">Please use responsibly</p>
-          <p class="mt-1 text-amber-100/90">
+          <p class="mt-1">
             Only download videos that you own or have permission to download.
-            Respect copyrights and the terms of service of each website.
           </p>
         </div>
 
         {% if error %}
         <div
-          class="mb-4 flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+          class="mb-4 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-100"
         >
-          <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
-          <div>
-            <p class="font-medium">{{ error }}</p>
-            {% if info %}
-            <p class="mt-1 text-xs text-red-200/80">
-              Technical details: {{ info }}
-            </p>
-            {% endif %}
-          </div>
+          <p class="font-medium">{{ error }}</p>
+          {% if info %}
+          <p class="mt-1 text-xs text-red-200/80">Details: {{ info }}</p>
+          {% endif %}
         </div>
         {% endif %}
 
-        <form
-          method="post"
-          action="/download"
-          class="space-y-5"
-          autocomplete="off"
-        >
+        <form method="post" action="/download" class="space-y-4" autocomplete="off">
           <div>
             <label
               for="url"
-              class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.12em] text-slate-400"
+              class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-400"
             >
               Video URL
-              <span class="text-[0.65rem] font-normal text-slate-500"
-                >e.g. YouTube, Vimeo, and many others</span
-              >
             </label>
-            <div
-              class="group relative mt-1 flex items-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 shadow-inner shadow-black/40 focus-within:border-sky-500/70 focus-within:ring-2 focus-within:ring-sky-500/40"
-            >
-              <span
-                class="flex h-11 items-center px-3 text-slate-500 group-focus-within:text-sky-400"
-              >
-                <i class="fa-solid fa-link"></i>
-              </span>
-              <input
-                id="url"
-                name="url"
-                type="url"
-                required
-                placeholder="Paste a video link here..."
-                class="h-11 w-full border-0 bg-transparent text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-0"
-              />
-            </div>
+            <input
+              id="url"
+              name="url"
+              type="url"
+              required
+              placeholder="https://..."
+              value="{{ url or '' }}"
+              class="h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm text-slate-50 placeholder:text-slate-500 focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-400"
+            />
           </div>
 
-          <div
-            class="flex flex-col gap-4 rounded-2xl bg-slate-900/40 p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Format
-              </p>
-              <p class="mt-1 text-xs text-slate-400">
-                Choose between high quality video, smaller video, or audio only.
-              </p>
-            </div>
-            <div class="flex flex-wrap gap-2">
+          <fieldset class="space-y-2">
+            <legend
+              class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400"
+            >
+              Format
+            </legend>
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <label
-                class="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-200 shadow-sm shadow-black/40 hover:border-sky-500/70 hover:text-sky-100"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-sky-400"
               >
                 <input
                   type="radio"
                   name="file_format"
                   value="video"
                   class="accent-sky-500"
-                  checked
+                  {% if file_format == 'video' or not file_format %}checked{% endif %}
                 />
-                <span>HD Video (MP4)</span>
+                <span>HD video (MP4)</span>
               </label>
+
               <label
-                class="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-200 shadow-sm shadow-black/40 hover:border-sky-500/70 hover:text-sky-100"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-sky-400"
               >
                 <input
                   type="radio"
                   name="file_format"
                   value="video_low"
                   class="accent-sky-500"
+                  {% if file_format == 'video_low' %}checked{% endif %}
                 />
-                <span>Smaller Video (≤ 480p)</span>
+                <span>Smaller video (≤ 480p)</span>
               </label>
+
               <label
-                class="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-xs text-slate-200 shadow-sm shadow-black/40 hover:border-sky-500/70 hover:text-sky-100"
+                class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-sky-400"
               >
                 <input
                   type="radio"
                   name="file_format"
                   value="audio"
                   class="accent-sky-500"
+                  {% if file_format == 'audio' %}checked{% endif %}
                 />
-                <span>Audio Only (MP3)</span>
+                <span>Audio only (MP3)</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <button
             type="submit"
-            class="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-purple-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/40 transition hover:from-sky-400 hover:to-purple-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+            class="flex w-full items-center justify-center rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           >
-            <span>Download</span>
-            <span
-              class="flex h-7 w-7 items-center justify-center rounded-xl bg-white/10 text-xs group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:shadow-black/40"
-            >
-              <i class="fa-solid fa-arrow-down-long"></i>
-            </span>
+            Download
           </button>
         </form>
 
-        <p class="mt-6 text-center text-[0.7rem] text-slate-500">
-          This tool uses <span class="font-semibold text-slate-300">yt-dlp</span>
-          under the hood and supports many popular video platforms. Availability of
-          downloads depends on each site's policies and your local laws.
+        <p class="mt-5 text-center text-[0.7rem] text-slate-500">
+          Powered by <span class="font-semibold text-slate-300">yt-dlp</span>. Availability
+          of downloads depends on each site's policies and your local laws.
         </p>
       </section>
     </main>

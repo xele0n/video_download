@@ -76,6 +76,34 @@ You can also use this project directly from the command line without the web UI.
 The CLI and the web UI share the same downloading logic (based on `yt-dlp`), with
 extra tuning to better support HLS-style streams such as Veo/Vimeo recordings.
 
+### Google AdSense (optional)
+
+If you want to show Google AdSense ads in the web UI, set these environment
+variables before starting the server:
+
+```bash
+set ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX      # Windows PowerShell / CMD
+set ADSENSE_SLOT_ID=1234567890
+```
+
+Or in a Unix-like shell:
+
+```bash
+export ADSENSE_CLIENT_ID="ca-pub-XXXXXXXXXXXXXXXX"
+export ADSENSE_SLOT_ID="1234567890"
+```
+
+Then start the app:
+
+```bash
+python main.py launch
+```
+
+The home page template (`index.html`) will automatically include the AdSense
+script and a responsive ad unit when both values are present. Replace the
+placeholders with your real AdSense publisher ID and slot ID from your Google
+AdSense account.
+
 ### How it works
 
 - The frontend (in `templates/index.html`) provides a form where you paste a video URL and select the format.

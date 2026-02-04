@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Video Downloader</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7674438363848466"
+     crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-900 text-slate-50">
@@ -19,6 +21,22 @@
             Paste a video link and choose the format you want to download.
           </p>
         </header>
+
+        {% if adsense_client_id and adsense_slot_id %}
+        <div class="mb-4">
+          <ins
+            class="adsbygoogle"
+            style="display:block"
+            data-ad-client="{{ adsense_client_id }}"
+            data-ad-slot="{{ adsense_slot_id }}"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+          <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+        {% endif %}
 
         <div
           class="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"

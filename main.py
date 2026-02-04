@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 import argparse
+import os
 import sys
 
 from fastapi import FastAPI, Form, Request
@@ -12,6 +13,13 @@ import yt_dlp
 BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_DIR = BASE_DIR / "downloads"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
+
+# Optional Google AdSense configuration (for the web UI).
+# Set these environment variables in your shell or process manager:
+#   ADSENSE_CLIENT_ID  e.g. "ca-pub-XXXXXXXXXXXXXXXX"
+#   ADSENSE_SLOT_ID    e.g. "1234567890"
+ADSENSE_CLIENT_ID = os.getenv("ADSENSE_CLIENT_ID")
+ADSENSE_SLOT_ID = os.getenv("ADSENSE_SLOT_ID")
 
 app = FastAPI(title="Video Downloader")
 
@@ -30,6 +38,8 @@ def index(request: Request, error: Optional[str] = None, info: Optional[str] = N
             "request": request,
             "error": error,
             "info": info,
+            "adsense_client_id": ADSENSE_CLIENT_ID,
+            "adsense_slot_id": ADSENSE_SLOT_ID,
         },
     )
 

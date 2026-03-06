@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-900 text-slate-50">
-    <!-- Global loading overlay shown while a download is starting -->
+    <!-- Global loading overlay showing real download stage -->
     <div
       id="pageLoadingOverlay"
       class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 px-4"
@@ -25,10 +25,20 @@
             ></path>
           </svg>
         </div>
-        <h2 class="text-sm font-semibold text-slate-50">Preparing your download…</h2>
+        <h2 id="pageLoadingStage" class="text-sm font-semibold text-slate-50">Starting…</h2>
         <p id="pageLoadingText" class="mt-2 text-xs text-slate-300">
-          Contacting the video site and fetching stream information.
+          Preparing download.
         </p>
+
+        <div class="mt-4">
+          <div class="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+            <div
+              id="pageLoadingBar"
+              class="h-2 w-0 rounded-full bg-sky-500 transition-[width] duration-300"
+            ></div>
+          </div>
+          <p id="pageLoadingPercent" class="mt-2 text-xs text-slate-400">0%</p>
+        </div>
         <p class="mt-3 text-[0.7rem] text-slate-500">
           This can take up to a minute for long or high‑quality videos. Please keep this tab open.
         </p>
@@ -91,7 +101,7 @@
         </div>
         {% endif %}
 
-        <form method="post" action="/download" class="space-y-4" autocomplete="off">
+        <form id="downloadForm" method="post" action="/download" class="space-y-4" autocomplete="off">
           <div>
             <label
               for="url"
@@ -258,40 +268,130 @@
     </div>
 
     <script>
-      // Global download loading overlay
+      // Global download loading overlay (real stages via server events)
       const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
+      const pageLoadingStage = document.getElementById('pageLoadingStage');
       const pageLoadingText = document.getElementById('pageLoadingText');
+      const pageLoadingBar = document.getElementById('pageLoadingBar');
+      const pageLoadingPercent = document.getElementById('pageLoadingPercent');
       const downloadForm = document.querySelector('form[action="/download"]');
 
-      if (downloadForm && pageLoadingOverlay && pageLoadingText) {
-        const messages = [
-          'Contacting the video site and fetching stream information.',
-          'Selecting the best available quality based on your choice.',
-          'Downloading video/audio data… this may take a while for long videos.',
-          'Finishing up and preparing your file for download.',
-        ];
-
-        downloadForm.addEventListener('submit', () => {
+      if (downloadForm && pageLoadingOverlay && pageLoadingStage && pageLoadingText) {
+        function showOverlay() {
           pageLoadingOverlay.classList.remove('hidden');
           pageLoadingOverlay.classList.add('flex');
+        }
 
-          let index = 0;
-          pageLoadingText.textContent = messages[index];
+        function hideOverlay() {
+          pageLoadingOverlay.classList.add('hidden');
+          pageLoadingOverlay.classList.remove('flex');
+        }
 
-          // Rotate helper messages while the browser waits for the response.
-          const intervalId = setInterval(() => {
-            index = (index + 1) % messages.length;
-            pageLoadingText.textContent = messages[index];
-          }, 6000);
+        function setProgress(progress) {
+          const p = typeof progress === 'number' ? progress : 0;
+          const clamped = Math.max(0, Math.min(1, p));
+          const percent = Math.round(clamped * 100);
+          if (pageLoadingBar) pageLoadingBar.style.width = `${percent}%`;
+          if (pageLoadingPercent) pageLoadingPercent.textContent = `${percent}%`;
+        }
 
-          // Best-effort cleanup when the page unloads or navigation happens.
-          window.addEventListener(
-            'beforeunload',
-            () => {
-              clearInterval(intervalId);
-            },
-            { once: true },
-          );
+        downloadForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const formData = new FormData(downloadForm);
+          const urlVal = (formData.get('url') || '').toString();
+          const fmtVal = (formData.get('file_format') || 'video').toString();
+
+          showOverlay();
+          pageLoadingStage.textContent = 'Starting…';
+          pageLoadingText.textContent = 'Submitting request.';
+          setProgress(0);
+
+          let es = null;
+
+          try {
+            const startResp = await fetch('/api/download/start', {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (!startResp.ok) {
+              const data = await startResp.json().catch(() => null);
+              hideOverlay();
+              alert((data && data.error) ? data.error : 'Could not start download.');
+              return;
+            }
+
+            const startData = await startResp.json().catch(() => null);
+            const jobId = startData && startData.job_id;
+            if (!jobId) {
+              hideOverlay();
+              alert('Could not start download (missing job id).');
+              return;
+            }
+
+            pageLoadingStage.textContent = 'Queued';
+            pageLoadingText.textContent = 'Waiting for downloader…';
+
+            es = new EventSource(`/api/download/progress/${jobId}`);
+
+            es.onmessage = (evt) => {
+              let payload = null;
+              try {
+                payload = JSON.parse(evt.data);
+              } catch (err) {
+                return;
+              }
+
+              if (payload.stage) pageLoadingStage.textContent = payload.stage;
+              setProgress(payload.progress);
+
+              if (payload.status === 'extracting') {
+                pageLoadingText.textContent = 'Extracting video info and available formats.';
+              } else if (payload.status === 'downloading') {
+                pageLoadingText.textContent = 'Downloading video/audio data…';
+              } else if (payload.status === 'processing') {
+                pageLoadingText.textContent = 'Processing (merging/converting)…';
+              } else if (payload.status === 'finished') {
+                pageLoadingText.textContent = 'Ready. Starting browser download…';
+              } else if (payload.status === 'error') {
+                pageLoadingText.textContent = 'Download failed.';
+              }
+
+              if (payload.status === 'error') {
+                es.close();
+                hideOverlay();
+                const errText = payload.error || 'Download failed.';
+                window.location.href =
+                  `/?error=${encodeURIComponent('Could not download this URL.')}` +
+                  `&info=${encodeURIComponent(errText)}` +
+                  `&url=${encodeURIComponent(urlVal)}` +
+                  `&file_format=${encodeURIComponent(fmtVal)}`;
+              }
+
+              if (payload.status === 'finished' && payload.download_url) {
+                es.close();
+                const a = document.createElement('a');
+                a.href = payload.download_url;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => hideOverlay(), 800);
+              }
+            };
+
+            es.onerror = () => {
+              if (es) es.close();
+              hideOverlay();
+              alert('Lost connection while downloading. Please try again.');
+            };
+          } catch (err) {
+            if (es) es.close();
+            hideOverlay();
+            console.error('Download request failed:', err);
+            alert('Network or server error. Please try again.');
+          }
         });
       }
 

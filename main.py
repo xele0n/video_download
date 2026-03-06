@@ -16,7 +16,7 @@ DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 # Optional Google AdSense configuration (for the web UI).
 # Set these environment variables in your shell or process manager:
-#   ADSENSE_CLIENT_ID  e.g. "ca-pub-XXXXXXXXXXXXXXXX"
+#   ADSENSE_CLIENT_ID  e.g. "ca-pub-7674438363848466"
 #   ADSENSE_SLOT_ID    e.g. "1234567890"
 ADSENSE_CLIENT_ID = os.getenv("ADSENSE_CLIENT_ID")
 ADSENSE_SLOT_ID = os.getenv("ADSENSE_SLOT_ID")

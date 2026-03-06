@@ -9,6 +9,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-slate-900 text-slate-50">
+    <!-- Global loading overlay shown while a download is starting -->
+    <div
+      id="pageLoadingOverlay"
+      class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 px-4"
+    >
+      <div class="max-w-sm rounded-xl border border-slate-800 bg-slate-950 p-6 text-center shadow-xl">
+        <div class="mb-3">
+          <svg class="mx-auto h-10 w-10 animate-spin text-sky-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+        <h2 class="text-sm font-semibold text-slate-50">Preparing your download…</h2>
+        <p id="pageLoadingText" class="mt-2 text-xs text-slate-300">
+          Contacting the video site and fetching stream information.
+        </p>
+        <p class="mt-3 text-[0.7rem] text-slate-500">
+          This can take up to a minute for long or high‑quality videos. Please keep this tab open.
+        </p>
+      </div>
+    </div>
+
     <main
       class="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-4 py-8"
     >
@@ -22,22 +48,6 @@
           </p>
         </header>
 
-        {% if adsense_client_id and adsense_slot_id %}
-        <div class="mb-4">
-          <ins
-            class="adsbygoogle"
-            style="display:block"
-            data-ad-client="{{ adsense_client_id }}"
-            data-ad-slot="{{ adsense_slot_id }}"
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
-          <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-          </script>
-        </div>
-        {% endif %}
-
         <div
           class="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100"
         >
@@ -49,12 +59,35 @@
 
         {% if error %}
         <div
-          class="mb-4 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-100"
+          class="mb-4 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-3 text-sm text-red-100"
         >
           <p class="font-medium">{{ error }}</p>
           {% if info %}
-          <p class="mt-1 text-xs text-red-200/80">Details: {{ info }}</p>
+          <button
+            id="toggleErrorDetails"
+            type="button"
+            class="mt-2 text-[0.7rem] font-medium text-red-100 underline underline-offset-2 hover:text-red-50"
+          >
+            Show technical details
+          </button>
+          <pre
+            id="errorDetails"
+            class="mt-2 hidden max-h-40 overflow-auto rounded-md bg-red-950/60 px-2 py-1 text-[0.65rem] text-red-100"
+          >{{ info }}</pre>
           {% endif %}
+
+          <div class="mt-3 text-xs text-red-200/80">
+            <p class="mb-1 text-[0.68rem] font-semibold uppercase tracking-[0.16em]">
+              How to fix this (most common causes)
+            </p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Make sure the link is correct and the video is publicly accessible.</li>
+              <li>Some platforms or private / paid videos block downloads entirely.</li>
+              <li>Try updating the downloader on the server: <code>pip install --upgrade yt-dlp</code>.</li>
+              <li>If the error mentions <code>ffmpeg</code>, ensure FFmpeg is installed and on the PATH.</li>
+              <li>For repeated failures on one site, it might not be supported yet or may have changed recently.</li>
+            </ul>
+          </div>
         </div>
         {% endif %}
 
@@ -134,11 +167,331 @@
         </form>
 
         <p class="mt-5 text-center text-[0.7rem] text-slate-500">
-          Powered by <span class="font-semibold text-slate-300">yt-dlp</span>. Availability
-          of downloads depends on each site's policies and your local laws.
+          Made by Ilya
         </p>
+
+        <div class="mt-4 flex justify-center">
+          <button
+            id="supportBtn"
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-medium text-slate-200 hover:border-sky-400 hover:text-sky-100 transition-colors"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            Support the Creator
+          </button>
+        </div>
       </section>
+
+      <!-- Banner Ad at Bottom -->
+      <div class="mt-6 w-full">
+        <ins
+          class="adsbygoogle"
+          style="display:block"
+          data-ad-client="ca-pub-7674438363848466"
+          data-ad-slot="{{ adsense_slot_id or 'auto' }}"
+          data-ad-format="horizontal"
+          data-full-width-responsive="true"
+        ></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
     </main>
+
+    <!-- Support Modal -->
+    <div
+      id="supportModal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4"
+      data-ad-slot="{{ adsense_slot_id or 'auto' }}"
+    >
+      <div class="relative w-full max-w-md rounded-xl border border-slate-800 bg-slate-950 p-6 shadow-xl">
+        <button
+          id="closeModal"
+          class="absolute right-4 top-4 text-slate-400 hover:text-slate-200"
+          aria-label="Close"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <h2 class="mb-2 text-lg font-semibold text-slate-50">Support the Creator</h2>
+        <p class="mb-4 text-sm text-slate-400">
+          Thank you for paying for my uni!
+        </p>
+        <div id="adCounter" class="mb-2 text-center text-xs text-slate-400">
+          <span id="adCount">0</span> ad<span id="adCountPlural">s</span> watched this session
+        </div>
+        <div id="modalAd" class="mb-4 min-h-[250px] flex items-center justify-center border border-slate-700 rounded-lg bg-slate-900/50">
+          <div id="adLoading" class="text-center text-slate-400">
+            <div class="mb-2">
+              <svg class="animate-spin h-8 w-8 mx-auto text-sky-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <p class="text-sm">Loading ad...</p>
+          </div>
+          <div id="adError" class="hidden text-center text-red-400 text-sm px-4">
+            <p>Ad failed to load. Please try again.</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button
+            id="watchAnotherBtn"
+            type="button"
+            disabled
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-slate-300 cursor-not-allowed transition-colors"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="watchAnotherText">Please wait <span id="countdown">30</span>s before next ad</span>
+          </button>
+          <p class="text-center text-xs text-slate-500">
+            Close this window when you're done. Thank you for your support!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global download loading overlay
+      const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
+      const pageLoadingText = document.getElementById('pageLoadingText');
+      const downloadForm = document.querySelector('form[action="/download"]');
+
+      if (downloadForm && pageLoadingOverlay && pageLoadingText) {
+        const messages = [
+          'Contacting the video site and fetching stream information.',
+          'Selecting the best available quality based on your choice.',
+          'Downloading video/audio data… this may take a while for long videos.',
+          'Finishing up and preparing your file for download.',
+        ];
+
+        downloadForm.addEventListener('submit', () => {
+          pageLoadingOverlay.classList.remove('hidden');
+          pageLoadingOverlay.classList.add('flex');
+
+          let index = 0;
+          pageLoadingText.textContent = messages[index];
+
+          // Rotate helper messages while the browser waits for the response.
+          const intervalId = setInterval(() => {
+            index = (index + 1) % messages.length;
+            pageLoadingText.textContent = messages[index];
+          }, 6000);
+
+          // Best-effort cleanup when the page unloads or navigation happens.
+          window.addEventListener(
+            'beforeunload',
+            () => {
+              clearInterval(intervalId);
+            },
+            { once: true },
+          );
+        });
+      }
+
+      // Support Creator Modal with Multiple Ads and Timer
+      const supportBtn = document.getElementById('supportBtn');
+      const supportModal = document.getElementById('supportModal');
+      const closeModal = document.getElementById('closeModal');
+      const watchAnotherBtn = document.getElementById('watchAnotherBtn');
+      const watchAnotherText = document.getElementById('watchAnotherText');
+      const countdownElement = document.getElementById('countdown');
+      const modalAdContainer = document.getElementById('modalAd');
+      const adLoading = document.getElementById('adLoading');
+      const adError = document.getElementById('adError');
+      const adCountElement = document.getElementById('adCount');
+      const adCountPlural = document.getElementById('adCountPlural');
+      const toggleErrorDetails = document.getElementById('toggleErrorDetails');
+      const errorDetails = document.getElementById('errorDetails');
+      
+      const MIN_WAIT_TIME = 30; // seconds to wait before next ad
+      let countdownTimer = null;
+      let remainingTime = 0;
+      
+      // Get ad count from sessionStorage or initialize to 0
+      function getAdCount() {
+        return parseInt(sessionStorage.getItem('adsWatched') || '0', 10);
+      }
+      
+      function updateAdCount(count) {
+        sessionStorage.setItem('adsWatched', count.toString());
+        if (adCountElement) {
+          adCountElement.textContent = count;
+        }
+        if (adCountPlural) {
+          adCountPlural.textContent = count === 1 ? '' : 's';
+        }
+      }
+      
+      // Initialize ad count display
+      updateAdCount(getAdCount());
+      
+      // Start countdown timer
+      function startCountdown() {
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+        }
+        
+        remainingTime = MIN_WAIT_TIME;
+        if (watchAnotherBtn) {
+          watchAnotherBtn.disabled = true;
+          watchAnotherBtn.className = 'flex w-full items-center justify-center gap-2 rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-slate-300 cursor-not-allowed transition-colors';
+        }
+        
+        countdownTimer = setInterval(() => {
+          remainingTime--;
+          
+          if (countdownElement) {
+            countdownElement.textContent = remainingTime;
+          }
+          
+          if (remainingTime <= 0) {
+            clearInterval(countdownTimer);
+            if (watchAnotherBtn && watchAnotherText) {
+              watchAnotherBtn.disabled = false;
+              watchAnotherBtn.className = 'flex w-full items-center justify-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400 transition-colors';
+              watchAnotherText.innerHTML = 'Watch Another Ad';
+            }
+          }
+        }, 1000);
+      }
+      
+      // Toggle technical error details (if present)
+      if (toggleErrorDetails && errorDetails) {
+        toggleErrorDetails.addEventListener('click', () => {
+          const isHidden = errorDetails.classList.contains('hidden');
+          if (isHidden) {
+            errorDetails.classList.remove('hidden');
+            toggleErrorDetails.textContent = 'Hide technical details';
+          } else {
+            errorDetails.classList.add('hidden');
+            toggleErrorDetails.textContent = 'Show technical details';
+          }
+        });
+      }
+      
+      // Function to create and initialize a new ad unit
+      function loadNewAd() {
+        if (!modalAdContainer || !supportModal) {
+          console.error('Required elements not found');
+          return;
+        }
+        
+        // Show loading state
+        if (adLoading) adLoading.classList.remove('hidden');
+        if (adError) adError.classList.add('hidden');
+        
+        // Clear existing ad
+        const existingAd = modalAdContainer.querySelector('.adsbygoogle');
+        if (existingAd) {
+          existingAd.remove();
+        }
+        
+        // Wait a bit for cleanup, then create new ad
+        setTimeout(() => {
+          if (!window.adsbygoogle) {
+            console.error('AdSense script not loaded');
+            if (adLoading) adLoading.classList.add('hidden');
+            if (adError) adError.classList.remove('hidden');
+            return;
+          }
+          
+          // Get ad slot from modal's data attribute
+          const adSlot = supportModal.getAttribute('data-ad-slot') || 'auto';
+          
+          // Create new ad unit
+          const newAdUnit = document.createElement('ins');
+          newAdUnit.className = 'adsbygoogle';
+          newAdUnit.style.display = 'block';
+          newAdUnit.setAttribute('data-ad-client', 'ca-pub-7674438363848466');
+          newAdUnit.setAttribute('data-ad-slot', adSlot);
+          newAdUnit.setAttribute('data-ad-format', 'auto');
+          newAdUnit.setAttribute('data-full-width-responsive', 'true');
+          
+          modalAdContainer.appendChild(newAdUnit);
+          
+          // Initialize the new ad
+          try {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            
+            // Hide loading after a delay (ad might take time to render)
+            setTimeout(() => {
+              if (adLoading) adLoading.classList.add('hidden');
+              // Check if ad actually rendered (has content)
+              const adIframe = newAdUnit.querySelector('iframe');
+              if (!adIframe && adError) {
+                adError.classList.remove('hidden');
+              }
+            }, 2000);
+            
+            // Increment ad count
+            const currentCount = getAdCount();
+            updateAdCount(currentCount + 1);
+            
+            // Start countdown timer
+            startCountdown();
+          } catch (e) {
+            console.error('Ad initialization error:', e);
+            if (adLoading) adLoading.classList.add('hidden');
+            if (adError) adError.classList.remove('hidden');
+          }
+        }, 500);
+      }
+
+      if (supportBtn && supportModal && closeModal) {
+        supportBtn.addEventListener('click', () => {
+          supportModal.classList.remove('hidden');
+          supportModal.classList.add('flex');
+          document.body.style.overflow = 'hidden';
+          
+          // Reset countdown if modal was closed early
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+            remainingTime = 0;
+          }
+          
+          // Load first ad when modal opens
+          if (modalAdContainer) {
+            loadNewAd();
+          }
+        });
+
+        // Watch Another Ad button
+        if (watchAnotherBtn) {
+          watchAnotherBtn.addEventListener('click', () => {
+            if (!watchAnotherBtn.disabled) {
+              loadNewAd();
+            }
+          });
+        }
+
+        closeModal.addEventListener('click', () => {
+          supportModal.classList.add('hidden');
+          supportModal.classList.remove('flex');
+          document.body.style.overflow = '';
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+          }
+        });
+
+        supportModal.addEventListener('click', (e) => {
+          if (e.target === supportModal) {
+            supportModal.classList.add('hidden');
+            supportModal.classList.remove('flex');
+            document.body.style.overflow = '';
+            if (countdownTimer) {
+              clearInterval(countdownTimer);
+            }
+          }
+        });
+      }
+    </script>
   </body>
 </html>
 
